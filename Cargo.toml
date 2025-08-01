@@ -33,3 +33,9 @@ features = [
   "Response",
   "Window",
 ]
+
+[dev-dependencies]
+tokio = { version = "1.0", features = ["full"] }
+fantoccini = "0.19"
+toml = "0.8"
+similar = "2.2"

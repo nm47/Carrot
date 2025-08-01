@@ -24,19 +24,15 @@ struct Args {
 fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
     
-    println!("Fetching recipe from: {}", args.url);
-    
-    // Show debug message if requested
+    // Show debug message if requested (to stderr to not pollute output)
     if args.score {
-        println!("\n--- DEBUG NOT IMPLEMENTED ---\n");
+        eprintln!("DEBUG NOT IMPLEMENTED");
         return Ok(());
     }
     
-    // Use unified parsing pipeline
+    // Use unified parsing pipeline and output only the result
     let result = parse_recipe_from_url(&args.url, &args.format)?;
-    
-    println!("\n--- PARSED RECIPE ---\n");
-    println!("{}", result);
+    print!("{}", result);
     
     Ok(())
 }

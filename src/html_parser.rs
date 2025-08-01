@@ -45,9 +45,15 @@ impl HtmlParser {
                     }
                 }
                 NodeData::Element { name, attrs, .. } => {
+                    let element_name = name.local.to_string();
+                    
+                    // Skip script and style tags entirely (don't process their children)
+                    if element_name == "script" || element_name == "style" {
+                        continue;
+                    }
+                    
                     // Build the path for child elements
                     let mut new_path = path.clone();
-                    let element_name = name.local.to_string();
                     
                     // Look for class and id attributes
                     let attrs_borrowed = attrs.borrow();

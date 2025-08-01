@@ -1,0 +1,20 @@
+# Integration test cases for Carrot recipe parser
+
+[config]
+timeout_ms = 30000
+dev_server_url = "http://localhost:8001"
+
+[[test_cases]]
+name = "Budget Bytes Orange Julius - Markdown"
+url = "https://www.budgetbytes.com/wprm_print/orange-julius"
+format = "markdown"
+
+[[test_cases]]
+name = "Budget Bytes Orange Julius - HTML"
+url = "https://www.budgetbytes.com/wprm_print/orange-julius"
+format = "html"
+
+[[test_cases]]
+name = "Budget Bytes Orange Julius - JSON"
+url = "https://www.budgetbytes.com/wprm_print/orange-julius"
+format = "json"
