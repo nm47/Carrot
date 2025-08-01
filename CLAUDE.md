@@ -18,27 +18,56 @@ Carrot is a recipe parsing system consisting of a static site frontend and under
 
 ## Architecture
 
+  ### Web UI Flow
+
+  1. User enters URL in textarea, selects format, clicks parse
+  2. Frontend JS calls: window.parse_recipe(url, selectedFormat)
+  3. WASM parse_recipe function:
+     a. Constructs proxy URL: `/proxy?url=${encodeURIComponent(url)}`
+     b. Browser fetch(proxyUrl)
+     c. Extract html_string from proxy response
+     d. Call: parse_recipe_from_content(html_string, selectedFormat)
+  4. Return result to frontend
+
+  ### CLI Flow
+
+  1. User runs: cargo run --bin carrot-cli --url https://example.com --format markdown
+  2. CLI calls: parse_recipe_from_url(url, format)
+  3. parse_recipe_from_url function:
+     a. Use reqwest::blocking::get(url) to fetch html_string
+     b. Call: parse_recipe_from_content(html_string, format)
+     c. Return result
+  4. CLI prints result
+
+  Function Architecture:
+
+  // Core parsing logic - does all the work
+  pub fn parse_recipe_from_content(html: &str, format: &str) -> String {
+      // All parsing logic here
+  }
+
+  // Thin wrapper for CLI convenience
+  pub fn parse_recipe_from_url(url: &str, format: &str) -> Result<String, Error> {
+      let html = reqwest::blocking::get(url)?.text()?;
+      Ok(parse_recipe_from_content(&html, format))
+  }
+
+  Both flows converge on the same parse_recipe_from_content function - URL fetching is just the transport layer.
+
+
 ### Core Components
-
-**System Architecture:**
-- **Static Site Frontend** - Renders parsed recipe results in a user-friendly interface
-- **CLI Tool** - Command-line interface for parsing recipes from URLs
-- **Ingredient Parser** - Core parsing engine that processes recipe content
-
-**Parser Pipeline:**
-1. **HTML Extraction** (`carrot/extractor.py`) - Converts HTML to clean markdown using html2text
-2. **Content Scoring** (`carrot/scorer.py`) - Scores lines based on recipe likelihood using corpus matching
-3. **Structure Parsing** (`carrot/parser.py`) - Identifies sections and extracts structured data
-
-**Scoring Algorithm:**
-- **Ingredient Detection**: Match against comprehensive ingredient corpus
-- **Measurement Patterns**: Identify quantity + unit combinations (1 cup, 2 tsp, etc.)
-- **Step Identification**: Detect numbered steps and instruction patterns
-- **Section Clustering**: Group related lines into ingredients vs instructions sections
-- **Metadata Extraction**: Extract title, cook times, servings using regex patterns
 
 **Data Sources:**
 - `corpus/ingredients.txt` - 3,600+ ingredient names for matching
 - `corpus/measurements.txt` - Common cooking measurements and units
-- `corpus/step_patterns.txt` - Recipe instruction verbs and patterns
-- `corpus/section_headers.txt` - Common recipe section headers
+- `corpus/verbs.txt` - Recipe instruction verbs and patterns
+- `corpus/navigation_noise.txt` - Navigation elements and UI noise to filter out
+- `corpus/metadata_noise.txt` - Recipe metadata and site content to filter out  
+- `corpus/html_noise.txt` - HTML/CSS terms and technical content to filter out
+
+## Development Notes
+
+- We have the @scripts/run.sh command to bring everything up
+- No need to run the frontend or proxy, the user will host it themselves
+- WASM can't access file system - use `include_str!()` to embed corpus files at compile time
+- CLI uses `cargo run --bin carrot-cli -- --url <url> --score` for scoring analysis

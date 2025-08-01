@@ -1,0 +1,65 @@
+img
+src
+alt
+width
+height
+decoding
+async
+class
+style
+sizes
+data-pin
+loading
+wpforms
+javascript
+browser
+complete
+form
+email address
+first name
+last name
+required
+submit
+loading
+send
+reply
+guest
+photo
+label
+close popup
+popup
+insert
+copy link
+logo
+icon
+svg
+png
+jpg
+jpeg
+wp-content
+themes
+assets
+icons
+utility
+socials
+attachment
+thumbnail
+size
+href
+url
+http
+www
+com
+org
+net
+onclick
+javascript
+function
+var
+let
+const
+console
+window
+document
+element
+getElementsBy

@@ -24,6 +24,11 @@ cleanup() {
 # Set up signal handlers
 trap cleanup SIGINT SIGTERM
 
+# Build WASM initially
+echo "Building WASM package..."
+wasm-pack build --target web --dev
+echo "Initial WASM build complete!"
+
 # Start the proxy server in background
 python3 proxy_server.py &
 SERVER_PID=$!

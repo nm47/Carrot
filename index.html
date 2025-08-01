@@ -248,6 +248,73 @@
             border-color: #c3e6cb;
             color: #155724;
         }
+        .debug-button {
+            background: transparent;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 6px 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.875rem;
+            margin-left: 8px;
+        }
+        .debug-button:hover {
+            background: #e9ecef;
+            border-color: #adb5bd;
+            color: #333;
+        }
+        .debug-button:active {
+            background: #dee2e6;
+        }
+        .debug-button.active {
+            background: #cce7ff;
+            border-color: #66b3ff;
+            color: #0066cc;
+        }
+        .debug-view {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+        .debug-line {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 2px;
+            padding: 2px 0;
+        }
+        .debug-line-indicator {
+            font-size: 16px;
+            margin-right: 8px;
+            flex-shrink: 0;
+        }
+        .debug-line-score {
+            font-weight: bold;
+            min-width: 50px;
+            margin-right: 8px;
+            flex-shrink: 0;
+            text-align: right;
+            font-size: 0.8rem;
+        }
+        .debug-line-content {
+            flex: 1;
+            word-break: break-word;
+        }
+        .debug-line-reasoning {
+            font-size: 0.75rem;
+            color: #666;
+            font-style: italic;
+            margin-left: 66px;
+            margin-top: 2px;
+        }
     </style>
 </head>
 <body>
@@ -268,16 +335,16 @@
                 <div class="format-dropdown">
                     <button class="dropdown-button" onclick="toggleDropdown()" type="button" aria-expanded="false" aria-haspopup="listbox">
                         <div class="dropdown-text">
-                            <div class="dropdown-label" id="selected-format">Viewer</div>
+                            <div class="dropdown-label" id="selected-format">Markdown</div>
                         </div>
                         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 256 256" class="dropdown-arrow">
                             <path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"></path>
                         </svg>
                     </button>
                     <div class="dropdown-menu" id="format-dropdown-menu">
-                        <button class="dropdown-item" onclick="selectFormat('viewer')" data-value="viewer">Viewer</button>
                         <button class="dropdown-item" onclick="selectFormat('markdown')" data-value="markdown">Markdown</button>
                         <button class="dropdown-item" onclick="selectFormat('json')" data-value="json">JSON</button>
+                        <button class="dropdown-item" onclick="selectFormat('html')" data-value="html">HTML</button>
                     </div>
                 </div>
                 <button class="send-button" onclick="parseRecipe()" aria-label="Parse Recipe">
@@ -292,7 +359,7 @@
     <div id="result"></div>
 
     <script type="module">
-        import init, { parse_recipe, parse_html } from './pkg/carrot.js';
+        import init, { parse_recipe } from './pkg/carrot.js';
         
         async function run() {
             // Initialize the wasm module
@@ -300,15 +367,19 @@
             
             // Make functions available globally
             window.parse_recipe = parse_recipe;
-            window.parse_html = parse_html;
-            
             console.log('WASM module loaded successfully!');
         }
         
         run();
         
         // Global variable to track selected format
-        let selectedFormat = 'viewer';
+        let selectedFormat = 'markdown';
+        
+        // Global variables for debug mode
+        let isDebugMode = false;
+        let currentMarkdown = ''; // Original unfiltered markdown
+        let filteredResult = ''; // Filtered recipe content
+        let scoringData = null;
         
         // Dropdown functionality
         window.toggleDropdown = function() {
@@ -366,7 +437,23 @@
                 console.error('Failed to copy:', err);
             }
         };
-
+        
+        // Debug mode toggle functionality
+        window.toggleDebugMode = async function() {
+            const resultContent = document.querySelector('.result-content');
+            
+            if (!resultContent) return;
+            
+            // Replace content with debug message
+            resultContent.innerHTML = 'Debug mode not implemented yet';
+            resultContent.className = 'result-content';
+            resultContent.style = 'white-space: pre-wrap; background: #f8f9fa; color: #333; padding: 15px; border-radius: 4px; overflow-x: auto; font-style: italic; text-align: center;';
+        };
+        
+        // Render debug view
+        function renderDebugView(container) {
+        }
+        
         // Make parseRecipe function available globally
         window.parseRecipe = async function() {
             const input = document.getElementById('html-input').value;
@@ -385,7 +472,7 @@
             
             resultDiv.innerHTML = `
                 <div class="result-header">
-                    <h3 class="result-title">Loading...</h3>
+                    <h3 class="result-title">Noodling...</h3>
                 </div>
                 <p>Fetching and parsing recipe...</p>
             `;
@@ -406,8 +493,16 @@
                     throw new Error('No content received from proxy');
                 }
                 
-                console.log('Received HTML, parsing...');
-                const result = window.parse_html(data.contents);
+                console.log('Received HTML, parsing with format:', selectedFormat);
+                
+                // Let the backend handle all parsing logic
+                const result = await window.parse_recipe(input, selectedFormat);
+                
+                // Store content and reset debug state
+                currentMarkdown = result; // Store parsed content for debug mode
+                filteredResult = result; // Store content for normal view
+                scoringData = null;
+                isDebugMode = false;
                 
                 const formatTitle = selectedFormat.charAt(0).toUpperCase() + selectedFormat.slice(1);
                 
@@ -415,10 +510,16 @@
                     resultDiv.innerHTML = `
                         <div class="result-header">
                             <h3 class="result-title">${formatTitle} Result</h3>
-                            <button class="copy-button" onclick="copyToClipboard()">
-                                <img src="assets/copy_button.svg" alt="Copy" width="16" height="16">
-                                Copy
-                            </button>
+                            <div style="display: flex; align-items: center;">
+                                <button class="copy-button" onclick="copyToClipboard()">
+                                    <img src="assets/copy_button.svg" alt="Copy" width="16" height="16">
+                                    Copy
+                                </button>
+                                <button class="debug-button" onclick="toggleDebugMode()">
+                                    <img src="assets/debug_diff.svg" alt="Debug" width="16" height="16">
+                                    Debug
+                                </button>
+                            </div>
                         </div>
                         <pre class="result-content" style="white-space: pre-wrap; background: #f8f9fa; color: #333; padding: 15px; border-radius: 4px; overflow-x: auto;">${result}</pre>
                     `;
@@ -426,10 +527,16 @@
                     resultDiv.innerHTML = `
                         <div class="result-header">
                             <h3 class="result-title">Result</h3>
-                            <button class="copy-button" onclick="copyToClipboard()">
-                                <img src="assets/copy_button.svg" alt="Copy" width="16" height="16">
-                                Copy
-                            </button>
+                            <div style="display: flex; align-items: center;">
+                                <button class="copy-button" onclick="copyToClipboard()">
+                                    <img src="assets/copy_button.svg" alt="Copy" width="16" height="16">
+                                    Copy
+                                </button>
+                                <button class="debug-button" onclick="toggleDebugMode()">
+                                    <img src="assets/debug_diff.svg" alt="Debug" width="16" height="16">
+                                    Debug
+                                </button>
+                            </div>
                         </div>
                         <div class="result-content" style="white-space: pre-wrap;">${result}</div>
                     `;

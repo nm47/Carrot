@@ -1,0 +1,57 @@
+print
+go back
+add to collection
+go to collections
+smaller
+normal
+larger
+skip to content
+search for
+jump to recipe
+save
+share
+pin
+facebook
+pinterest
+instagram
+twitter
+youtube
+tiktok
+email
+whatsapp
+login
+sign up
+subscribe
+join today
+menu
+close
+home
+about
+contact
+faq
+recipes
+categories
+popular
+trending
+more
+view all
+load more
+notify of
+recipe rating
+your vote
+rate this recipe
+have an account
+get your free account
+sign up for free
+eat more spend less
+small budget no problem
+reply
+reply to
+comment
+comments
+load more comments
+newest
+oldest
+most voted
+inline feedbacks
+view all comments

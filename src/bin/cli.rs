@@ -1,7 +1,9 @@
 use clap::Parser;
-use html2text;
-use reqwest;
 use std::error::Error;
+
+// Import from the library part of this crate
+extern crate carrot;
+use carrot::parse_recipe_from_url;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -13,6 +15,10 @@ struct Args {
     /// Output format
     #[arg(short, long, default_value = "markdown")]
     format: String,
+    
+    /// Show line-by-line scoring analysis
+    #[arg(short, long)]
+    score: bool,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -20,34 +26,17 @@ fn main() -> Result<(), Box<dyn Error>> {
     
     println!("Fetching recipe from: {}", args.url);
     
-    // Fetch HTML content
-    let response = reqwest::blocking::get(&args.url)?;
-    
-    if !response.status().is_success() {
-        return Err(format!("HTTP error: {}", response.status()).into());
+    // Show debug message if requested
+    if args.score {
+        println!("\n--- DEBUG NOT IMPLEMENTED ---\n");
+        return Ok(());
     }
     
-    let html = response.text()?;
-    println!("Fetched {} bytes of HTML", html.len());
+    // Use unified parsing pipeline
+    let result = parse_recipe_from_url(&args.url, &args.format)?;
     
-    // Convert to markdown/text
-    let markdown = html2text::from_read(html.as_bytes(), 80);
-    
-    match args.format.as_str() {
-        "markdown" | "text" => {
-            println!("\n--- PARSED RECIPE ---\n");
-            println!("{}", markdown);
-        }
-        "raw" => {
-            println!("\n--- RAW HTML ---\n");
-            println!("{}", html);
-        }
-        _ => {
-            println!("Unknown format: {}. Using markdown.", args.format);
-            println!("\n--- PARSED RECIPE ---\n");
-            println!("{}", markdown);
-        }
-    }
+    println!("\n--- PARSED RECIPE ---\n");
+    println!("{}", result);
     
     Ok(())
 }
