@@ -71,3 +71,27 @@ Carrot is a recipe parsing system consisting of a static site frontend and under
 - No need to run the frontend or proxy, the user will host it themselves
 - WASM can't access file system - use `include_str!()` to embed corpus files at compile time
 - CLI uses `cargo run --bin carrot-cli -- --url <url> --score` for scoring analysis
+
+## Integration Testing
+
+**CRITICAL**: Always run full integration tests after significant changes to ensure CLI and web interfaces remain synchronized.
+
+### Running Integration Tests
+
+**Test Commands:**
+- All integration tests: `cargo test integration -- --nocapture`
+
+**When to Run Integration Tests:**
+- After changes to HTML parsing logic
+- After modifications to the unified pipeline (`parse_recipe_from_content`)  
+- After updates to WASM interface
+- Before releasing or deploying changes
+- When adding new output formats
+
+**Test Standards:**
+- All integration tests must pass
+- CLI and web outputs must be byte-for-byte identical for same inputs
+- Performance differences are acceptable (web has browser overhead)
+- Any discrepancies indicate pipeline divergence and must be fixed
+
+The integration tests validate that our unified pipeline truly produces identical results across both interfaces.

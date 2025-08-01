@@ -1,7 +1,5 @@
-pub mod html_parser;
 pub mod carrot_frontend;
 
-use html_parser::HtmlParser;
 use std::error::Error;
 use std::fmt;
 
@@ -33,22 +31,16 @@ impl From<reqwest::Error> for RecipeError {
 /// Core parsing logic - processes HTML content and returns formatted result
 pub fn parse_recipe_from_content(html: &str, format: &str) -> String {
     match format {
-        "html" => {
-            // Return structured text without parent paths
-            let text_chunks = HtmlParser::parse_html_to_text_with_parents(html);
-            text_chunks
-                .into_iter()
-                .map(|chunk| chunk.text)
-                .collect::<Vec<String>>()
-                .join("\n")
+        "text" => {
+            "Plaintext format not yet implemented".to_string()
         }
         "json" => {
             // TODO: Implement JSON format
             "JSON format not yet implemented".to_string()
         }
         _ => {
-            // Default to markdown/text format
-            HtmlParser::html_to_text(html)
+            // Default to markdown
+            "Markdown not yet implemented".to_string()
         }
     }
 }
